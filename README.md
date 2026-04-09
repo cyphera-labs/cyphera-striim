@@ -27,12 +27,30 @@ CREATE CQ ProtectFields
 
 ### 2. Open Processors (Flow Designer)
 
-Drag-and-drop `CypheraProtect` and `CypheraAccess` components in the visual Flow Designer. Requires the Striim Open Processor SDK.
+Visual drag-and-drop components for the Striim Flow Designer. Requires the Striim Open Processor SDK.
 
 | Processor | Properties | Description |
 |-----------|-----------|-------------|
 | **CypheraProtect** | `policyName`, `fieldIndex` | Protects a field using a named policy |
 | **CypheraAccess** | `fieldIndex` | Accesses a field using the embedded tag |
+
+#### Using Open Processors in Flow Designer
+
+1. Load the processors in the Striim console:
+   ```sql
+   LOAD OPEN PROCESSOR "lib/cyphera-striim-0.1.0.jar";
+   ```
+2. Go to **Apps** → **Create App** → choose a template or blank canvas
+3. Add a source (FileReader, DatabaseReader, etc.)
+4. Click **+** to add a component → select **Open Processor**
+5. In the **Adapter** dropdown, select **CypheraProtect** or **CypheraAccess**
+6. Configure properties:
+   - **CypheraProtect**: set `policyName` (e.g. `ssn`) and `fieldIndex` (0-based index of the field to protect)
+   - **CypheraAccess**: set `fieldIndex` (the field to access — tag tells Cyphera which policy to use)
+7. Connect to an output stream and target
+8. Deploy and start the application
+
+> **Note**: Open Processors appear under the generic "Open Processor" icon in the Flow Designer — select the Cyphera adapter from the dropdown after placing the component.
 
 ## Build
 
@@ -110,6 +128,17 @@ Mount `cyphera.json` to `/etc/cyphera/cyphera.json`:
 ```
 
 Override with `CYPHERA_POLICY_FILE` env var or `-Dcyphera.policy.file` system property.
+
+## Future / Nice to Have
+
+- **Custom icon in Flow Designer** — register as a full Striim adapter with a branded icon so CypheraProtect/CypheraAccess appear as their own components, not under the generic Open Processor
+- **Multi-field support** — protect/access multiple fields in a single processor (comma-separated field indices or field name mapping)
+- **Policy auto-discovery** — detect field types and suggest policies automatically
+- **Striim Marketplace listing** — publish as an official Striim partner integration
+- **Striim App Template** — pre-built CDC-to-encrypted-target pipeline template users can import
+- **Deeper Striim integration** — explore Striim's custom adapter API (`PropertyTemplate` with `AdapterType.source` / `AdapterType.target`) for tighter UI integration beyond Open Processor
+
+Contributions and feedback welcome — see [CONTRIBUTING.md](https://github.com/cyphera-labs/.github/blob/main/CONTRIBUTING.md).
 
 ## License
 
