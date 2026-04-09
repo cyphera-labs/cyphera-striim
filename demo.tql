@@ -1,0 +1,41 @@
+-- Cyphera Striim Demo
+-- Prerequisites: docker compose up -d, wait for Striim UI at http://localhost:9080
+
+-- Load the Cyphera JAR
+LOAD "lib/cyphera-striim-0.1.0.jar";
+
+-- Import the Cyphera functions
+IMPORT STATIC io.cyphera.striim.CypheraFunctions.*;
+
+-- Create a demo application
+CREATE APPLICATION CypheraDemo;
+
+-- Create a simple test stream type
+CREATE TYPE TestRecord (
+  id STRING,
+  ssn STRING,
+  name STRING
+);
+
+-- Create an in-memory source with test data
+CREATE STREAM RawStream OF TestRecord;
+
+-- Protect sensitive fields
+CREATE CQ ProtectFields
+  INSERT INTO ProtectedStream
+  SELECT
+    data[0],                              -- id passthrough
+    cyphera_protect('ssn', data[1]),      -- protect SSN (tagged)
+    data[2]                               -- name passthrough
+  FROM RawStream;
+
+-- Access (decrypt) — tag-based, no policy name needed
+CREATE CQ AccessFields
+  INSERT INTO ClearStream
+  SELECT
+    data[0],
+    cyphera_access(data[1]),              -- access via tag
+    data[2]
+  FROM ProtectedStream;
+
+END APPLICATION CypheraDemo;

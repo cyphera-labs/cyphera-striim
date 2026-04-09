@@ -1,0 +1,19 @@
+services:
+  build:
+    build: .
+    volumes:
+      - ./target:/output
+    entrypoint: ["cp", "/app/target/cyphera-striim-0.1.0.jar", "/output/"]
+
+  striim:
+    image: striim/evalversion:latest
+    ports:
+      - "9080:9080"
+    environment:
+      - CYPHERA_POLICY_FILE=/etc/cyphera/cyphera.json
+    volumes:
+      - ./target/cyphera-striim-0.1.0.jar:/opt/striim/lib/cyphera-striim-0.1.0.jar:ro
+      - ./config/cyphera.json:/etc/cyphera/cyphera.json:ro
+    depends_on:
+      build:
+        condition: service_completed_successfully

@@ -72,21 +72,19 @@ Mount `cyphera.json` to `/etc/cyphera/cyphera.json`:
 
 Override the path with `CYPHERA_POLICY_FILE` env var or `-Dcyphera.policy.file` system property.
 
-## Docker (Striim Eval)
+## Quick Start (Docker)
 
 ```bash
-docker run -d --name striim \
-  -p 9080:9080 \
-  -v $(pwd)/target/cyphera-striim-0.1.0.jar:/opt/striim/lib/cyphera-striim-0.1.0.jar \
-  -v $(pwd)/config/cyphera.json:/etc/cyphera/cyphera.json \
-  -e CYPHERA_POLICY_FILE=/etc/cyphera/cyphera.json \
-  striim/evalversion:latest
+# Build the JAR and start Striim with Cyphera loaded
+docker compose up -d
+
+# Wait for Striim to start (~30s), then open http://localhost:9080
+# Load the demo TQL in the Striim console
 ```
 
-Then open `http://localhost:9080` and load the JAR:
-```sql
-LOAD "lib/cyphera-striim-0.1.0.jar";
-```
+The docker-compose builds the fat JAR, mounts it into the Striim eval image along with the policy config, and starts Striim on port 9080.
+
+See `demo.tql` for a sample pipeline that protects and accesses fields in a stream.
 
 ## License
 
