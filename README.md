@@ -3,56 +3,95 @@
 [![CI](https://github.com/cyphera-labs/cyphera-striim/actions/workflows/ci.yml/badge.svg)](https://github.com/cyphera-labs/cyphera-striim/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
-Format-preserving encryption for [Striim](https://www.striim.com/) — custom Java functions for real-time data protection in CDC and streaming pipelines.
+Format-preserving encryption for [Striim](https://www.striim.com/) — protect sensitive data in real-time CDC and streaming pipelines.
 
 Built on [`io.cyphera:cyphera`](https://central.sonatype.com/artifact/io.cyphera/cyphera) from Maven Central.
 
+## Two Integration Options
+
+### 1. Custom Functions (UDF)
+
+Call `cyphera_protect` and `cyphera_access` directly in CQ queries. No Striim SDK needed.
+
+```sql
+IMPORT STATIC io.cyphera.striim.CypheraFunctions.*;
+
+CREATE CQ ProtectFields
+  INSERT INTO ProtectedStream
+  SELECT
+    data[0],
+    cyphera_protect('ssn', TO_STRING(data[1])),
+    data[2]
+  FROM RawStream;
+```
+
+### 2. Open Processors (Flow Designer)
+
+Drag-and-drop `CypheraProtect` and `CypheraAccess` components in the visual Flow Designer. Requires the Striim Open Processor SDK.
+
+| Processor | Properties | Description |
+|-----------|-----------|-------------|
+| **CypheraProtect** | `policyName`, `fieldIndex` | Protects a field using a named policy |
+| **CypheraAccess** | `fieldIndex` | Accesses a field using the embedded tag |
+
 ## Build
+
+### UDF only (no Striim SDK needed)
 
 ```bash
 mvn package -DskipTests
 ```
 
-Produces `target/cyphera-striim-0.1.0.jar` (fat JAR with all dependencies).
+### With Open Processors (requires Striim SDK)
+
+```bash
+# 1. Start Striim to extract the SDK
+docker compose up -d
+# Wait ~30s for Striim to start
+
+# 2. Extract the SDK JAR from the running container
+bash setup-sdk.sh
+
+# 3. Build
+mvn package -DskipTests
+
+# OR build via Docker
+docker build -t cyphera-striim .
+```
+
+> **Note**: The Open Processor SDK is specific to your Striim version. If you upgrade Striim, re-run `setup-sdk.sh` and rebuild. See [Striim Open Processor docs](https://www.striim.com/docs/en/using-striim-open-processors.html).
 
 ## Deploy
 
-1. Copy the JAR to `$STRIIM_HOME/lib/`
-2. In the Striim console:
+Copy the fat JAR to `$STRIIM_HOME/lib/`:
 
+```bash
+cp target/cyphera-striim-0.1.0.jar $STRIIM_HOME/lib/
+```
+
+For UDFs, load in the console:
 ```sql
 LOAD "lib/cyphera-striim-0.1.0.jar";
 ```
 
-## Usage
-
+For Open Processors:
 ```sql
-IMPORT STATIC io.cyphera.striim.CypheraFunctions.*;
-
-CREATE APPLICATION ProtectPipeline;
-
--- Protect sensitive fields in a CDC stream
-CREATE CQ ProtectFields
-  INSERT INTO ProtectedStream
-  SELECT
-    data[0],                                    -- id (passthrough)
-    cyphera_protect('ssn', data[1]),            -- protect SSN
-    cyphera_protect('credit_card', data[2]),    -- protect credit card
-    data[3]                                     -- other field (passthrough)
-  FROM IncomingStream;
-
--- Access (decrypt) — tag tells Cyphera which policy to use
-CREATE CQ AccessFields
-  INSERT INTO ClearStream
-  SELECT
-    data[0],
-    cyphera_access(data[1]),
-    cyphera_access(data[2]),
-    data[3]
-  FROM ProtectedStream;
-
-END APPLICATION ProtectPipeline;
+LOAD OPEN PROCESSOR "lib/cyphera-striim-0.1.0.jar";
 ```
+
+## Quick Start (Docker)
+
+```bash
+STRIIM_FIRST_NAME=YourName \
+STRIIM_LAST_NAME=YourLast \
+STRIIM_COMPANY_NAME=YourCompany \
+STRIIM_EMAIL=you@company.com \
+docker compose up -d
+```
+
+Wait ~30s, open **http://localhost:9080**, login `admin` / `admin`.
+
+See [DEMO.md](DEMO.md) for a complete working pipeline with input/output.
 
 ## Policy File
 
@@ -70,21 +109,7 @@ Mount `cyphera.json` to `/etc/cyphera/cyphera.json`:
 }
 ```
 
-Override the path with `CYPHERA_POLICY_FILE` env var or `-Dcyphera.policy.file` system property.
-
-## Quick Start (Docker)
-
-```bash
-# Build the JAR and start Striim with Cyphera loaded
-docker compose up -d
-
-# Wait for Striim to start (~30s), then open http://localhost:9080
-# Load the demo TQL in the Striim console
-```
-
-The docker-compose builds the fat JAR, mounts it into the Striim eval image along with the policy config, and starts Striim on port 9080.
-
-See `demo.tql` for a sample pipeline that protects and accesses fields in a stream.
+Override with `CYPHERA_POLICY_FILE` env var or `-Dcyphera.policy.file` system property.
 
 ## License
 

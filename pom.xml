@@ -24,6 +24,13 @@
             <artifactId>cyphera</artifactId>
             <version>0.0.1-alpha.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.striim</groupId>
+            <artifactId>StriimOpenProcessor-SDK</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/StriimOpenProcessor-SDK.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <build>
