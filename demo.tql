@@ -1,41 +1,48 @@
 -- Cyphera Striim Demo
--- Prerequisites: docker compose up -d, wait for Striim UI at http://localhost:9080
+-- Reads CSV, protects SSN fields, writes protected output to file
+--
+-- Prerequisites:
+--   docker compose up -d
+--   Wait for Striim at http://localhost:9080
+--   Import this TQL via Apps > Create App > Import TQL
 
--- Load the Cyphera JAR
-LOAD "lib/cyphera-striim-0.1.0.jar";
+USE admin;
 
--- Import the Cyphera functions
-IMPORT STATIC io.cyphera.striim.CypheraFunctions.*;
+DROP APPLICATION CypheraDemo CASCADE;
 
--- Create a demo application
 CREATE APPLICATION CypheraDemo;
 
--- Create a simple test stream type
-CREATE TYPE TestRecord (
-  id STRING,
-  ssn STRING,
-  name STRING
-);
-
--- Create an in-memory source with test data
-CREATE STREAM RawStream OF TestRecord;
+-- Source: read CSV file with DSV parser
+CREATE SOURCE CsvSource USING FileReader (
+  directory: '/opt/striim/data',
+  wildcard: 'demo-data.csv',
+  positionByEOF: false,
+  parser: 'DSVParser',
+  header: true,
+  separator: ','
+)
+OUTPUT TO RawStream;
 
 -- Protect sensitive fields
 CREATE CQ ProtectFields
   INSERT INTO ProtectedStream
   SELECT
-    data[0],                              -- id passthrough
-    cyphera_protect('ssn', data[1]),      -- protect SSN (tagged)
-    data[2]                               -- name passthrough
+    data[0],
+    data[1],
+    io.cyphera.striim.CypheraFunctions.cyphera_protect('ssn', TO_STRING(data[2])),
+    data[3]
   FROM RawStream;
 
--- Access (decrypt) — tag-based, no policy name needed
-CREATE CQ AccessFields
-  INSERT INTO ClearStream
-  SELECT
-    data[0],
-    cyphera_access(data[1]),              -- access via tag
-    data[2]
-  FROM ProtectedStream;
+-- Write protected output to file
+CREATE TARGET FileOutput USING FileWriter (
+  directory: '/opt/striim/data/output',
+  filename: 'protected-data.csv',
+  formatter: 'DSVFormatter',
+  separator: ','
+)
+INPUT FROM ProtectedStream;
 
 END APPLICATION CypheraDemo;
+
+-- To run: DEPLOY APPLICATION CypheraDemo; START APPLICATION CypheraDemo;
+-- Check output: docker exec cyphera-striim-striim-1 cat /opt/striim/data/output/protected-data.csv

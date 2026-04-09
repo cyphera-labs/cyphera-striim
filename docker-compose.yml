@@ -20,6 +20,7 @@ services:
     volumes:
       - ./target/cyphera-striim-0.1.0.jar:/opt/striim/lib/cyphera-striim-0.1.0.jar:ro
       - ./config/cyphera.json:/etc/cyphera/cyphera.json:ro
+      - ./demo-data.csv:/opt/striim/data/demo-data.csv:ro
     depends_on:
       build:
         condition: service_completed_successfully
