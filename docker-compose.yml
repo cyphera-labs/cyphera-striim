@@ -7,9 +7,15 @@ services:
 
   striim:
     image: striim/evalversion:latest
+    cpus: 4
     ports:
       - "9080:9080"
     environment:
+      - STRIIM_ACCEPT_EULA=Y
+      - FIRST_NAME=${STRIIM_FIRST_NAME:-Demo}
+      - LAST_NAME=${STRIIM_LAST_NAME:-User}
+      - COMPANY_NAME=${STRIIM_COMPANY_NAME:-Cyphera}
+      - COMPANY_EMAIL_ADDRESS=${STRIIM_EMAIL:-demo@cyphera.io}
       - CYPHERA_POLICY_FILE=/etc/cyphera/cyphera.json
     volumes:
       - ./target/cyphera-striim-0.1.0.jar:/opt/striim/lib/cyphera-striim-0.1.0.jar:ro
