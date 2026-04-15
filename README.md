@@ -1,6 +1,7 @@
 # cyphera-striim
 
 [![CI](https://github.com/cyphera-labs/cyphera-striim/actions/workflows/ci.yml/badge.svg)](https://github.com/cyphera-labs/cyphera-striim/actions/workflows/ci.yml)
+[![Security](https://github.com/cyphera-labs/cyphera-striim/actions/workflows/codeql.yml/badge.svg)](https://github.com/cyphera-labs/cyphera-striim/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 Format-preserving encryption for [Striim](https://www.striim.com/) — protect sensitive data in real-time CDC and streaming pipelines.
