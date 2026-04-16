@@ -11,4 +11,31 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+      - name: Extract Striim SDK
+        run: |
+          mkdir -p lib
+          docker pull striim/evalversion:latest || docker pull striim/striim:latest || true
+          CONTAINER=$(docker create striim/evalversion:latest 2>/dev/null || docker create striim/striim:latest 2>/dev/null || echo "")
+          if [ -n "$CONTAINER" ]; then
+            docker cp "$CONTAINER:/opt/striim/StriimSDK/StriimOpenProcessor-SDK.jar" lib/ 2>/dev/null || \
+            docker cp "$CONTAINER:/opt/striim/lib/StriimOpenProcessor-SDK.jar" lib/ 2>/dev/null || \
+            echo "Could not find SDK JAR in container"
+            docker rm "$CONTAINER"
+          fi
+          if [ ! -f lib/StriimOpenProcessor-SDK.jar ]; then
+            echo "::warning::Striim SDK not available — creating stub JAR for compilation"
+            # Create minimal stub JAR so compilation can check syntax
+            mkdir -p stub/com/striim/proc
+            cat > stub/com/striim/proc/OpenProcessor.java << 'JAVA'
+          package com.striim.proc;
+          public abstract class OpenProcessor {
+            public abstract void init() throws Exception;
+            public abstract Object process(Object input) throws Exception;
+            public abstract void close() throws Exception;
+          }
+          JAVA
+            javac stub/com/striim/proc/OpenProcessor.java
+            cd stub && jar cf ../lib/StriimOpenProcessor-SDK.jar com/ && cd ..
+            rm -rf stub
+          fi
       - run: mvn -B package -DskipTests
