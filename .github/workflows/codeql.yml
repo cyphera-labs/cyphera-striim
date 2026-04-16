@@ -20,34 +20,17 @@ jobs:
       - uses: github/codeql-action/init@v3
         with:
           languages: java
-      - name: Extract Striim SDK or create stub
+      - name: Install Striim SDK and build
         run: |
-          mkdir -p lib
-          mkdir -p stub/com/striim/proc stub/com/webaction/anno stub/com/webaction/runtime/components/openprocessor
-          cat > stub/com/webaction/anno/AdapterType.java << 'JAVA'
-          package com.webaction.anno;
-          public class AdapterType { public static final String process = "process"; public static final String source = "source"; public static final String target = "target"; }
-          JAVA
-          cat > stub/com/webaction/anno/PropertyTemplate.java << 'JAVA'
-          package com.webaction.anno;
-          import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME)
-          public @interface PropertyTemplate { String name(); Class<?> type(); PropertyTemplateProperty[] properties(); }
-          JAVA
-          cat > stub/com/webaction/anno/PropertyTemplateProperty.java << 'JAVA'
-          package com.webaction.anno;
-          import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME)
-          public @interface PropertyTemplateProperty { String name(); Class<?> type(); boolean required(); String defaultValue() default ""; String description() default ""; }
-          JAVA
-          cat > stub/com/webaction/runtime/components/openprocessor/StriimOpenProcessor.java << 'JAVA'
-          package com.webaction.runtime.components.openprocessor;
-          public abstract class StriimOpenProcessor {
-            public abstract void init(java.util.Map<String, Object> props, java.util.Map<String, Object> props2) throws Exception;
-            public abstract Object process(Object input) throws Exception;
-            public abstract void close() throws Exception;
-          }
-          JAVA
-          javac stub/com/webaction/anno/*.java stub/com/webaction/runtime/components/openprocessor/*.java
-          cd stub && jar cf ../lib/StriimOpenProcessor-SDK.jar com/ && cd ..
-          rm -rf stub
-      - run: mvn -B package -DskipTests
+          docker run --rm \
+            --entrypoint /bin/bash \
+            -v "$PWD:/build" \
+            -w /build \
+            striim/evalversion:latest \
+            -c "
+              dpkg -i /tmp/striim-node-*-Linux.deb 2>/dev/null
+              mkdir -p lib
+              cp /opt/striim/StriimSDK/StriimOpenProcessor-SDK.jar lib/
+              mvn -B package -DskipTests
+            "
       - uses: github/codeql-action/analyze@v3
