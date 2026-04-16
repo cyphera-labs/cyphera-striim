@@ -26,17 +26,17 @@ jobs:
           mkdir -p stub/com/striim/proc stub/com/webaction/anno stub/com/webaction/runtime/components/openprocessor
           cat > stub/com/webaction/anno/AdapterType.java << 'JAVA'
           package com.webaction.anno;
-          public @interface AdapterType { String name(); String type(); }
+          public class AdapterType { public static final String process = "process"; public static final String source = "source"; public static final String target = "target"; }
           JAVA
           cat > stub/com/webaction/anno/PropertyTemplate.java << 'JAVA'
           package com.webaction.anno;
           import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME)
-          public @interface PropertyTemplate { String name(); String type(); PropertyTemplateProperty[] properties(); }
+          public @interface PropertyTemplate { String name(); Class<?> type(); PropertyTemplateProperty[] properties(); }
           JAVA
           cat > stub/com/webaction/anno/PropertyTemplateProperty.java << 'JAVA'
           package com.webaction.anno;
           import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME)
-          public @interface PropertyTemplateProperty { String name(); String type(); boolean required(); String defaultValue() default ""; String description() default ""; }
+          public @interface PropertyTemplateProperty { String name(); Class<?> type(); boolean required(); String defaultValue() default ""; String description() default ""; }
           JAVA
           cat > stub/com/webaction/runtime/components/openprocessor/StriimOpenProcessor.java << 'JAVA'
           package com.webaction.runtime.components.openprocessor;
