@@ -24,12 +24,25 @@ jobs:
           fi
           if [ ! -f lib/StriimOpenProcessor-SDK.jar ]; then
             echo "::warning::Striim SDK not available — creating stub JAR for compilation"
-            # Create minimal stub JAR so compilation can check syntax
-            mkdir -p stub/com/striim/proc
-            cat > stub/com/striim/proc/OpenProcessor.java << 'JAVA'
-          package com.striim.proc;
-          public abstract class OpenProcessor {
-            public abstract void init() throws Exception;
+            mkdir -p stub/com/striim/proc stub/com/webaction/anno stub/com/webaction/runtime/components/openprocessor
+            cat > stub/com/webaction/anno/AdapterType.java << 'JAVA'
+          package com.webaction.anno;
+          public @interface AdapterType { String name(); String type(); }
+          JAVA
+            cat > stub/com/webaction/anno/PropertyTemplate.java << 'JAVA'
+          package com.webaction.anno;
+          import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME)
+          public @interface PropertyTemplate { String name(); String type(); PropertyTemplateProperty[] properties(); }
+          JAVA
+            cat > stub/com/webaction/anno/PropertyTemplateProperty.java << 'JAVA'
+          package com.webaction.anno;
+          import java.lang.annotation.*; @Retention(RetentionPolicy.RUNTIME)
+          public @interface PropertyTemplateProperty { String name(); String type(); boolean required(); String defaultValue() default ""; String description() default ""; }
+          JAVA
+            cat > stub/com/webaction/runtime/components/openprocessor/StriimOpenProcessor.java << 'JAVA'
+          package com.webaction.runtime.components.openprocessor;
+          public abstract class StriimOpenProcessor {
+            public abstract void init(java.util.Map<String, Object> props, java.util.Map<String, Object> props2) throws Exception;
             public abstract Object process(Object input) throws Exception;
             public abstract void close() throws Exception;
           }
