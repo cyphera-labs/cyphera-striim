@@ -47,7 +47,8 @@ jobs:
             public abstract void close() throws Exception;
           }
           JAVA
-            javac stub/com/striim/proc/OpenProcessor.java
+            javac stub/com/webaction/anno/*.java
+            javac -cp stub stub/com/webaction/runtime/components/openprocessor/*.java
             cd stub && jar cf ../lib/StriimOpenProcessor-SDK.jar com/ && cd ..
             rm -rf stub
           fi
