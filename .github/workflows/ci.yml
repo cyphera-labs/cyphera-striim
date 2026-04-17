@@ -7,16 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Build inside Striim container
+      - name: Extract SDK from Striim image
         run: |
-          docker run --rm \
-            --entrypoint /bin/bash \
-            -v "$PWD:/build" \
-            -w /build \
-            striim/evalversion:latest \
-            -c "
-              dpkg -i /tmp/striim-node-*-Linux.deb 2>/dev/null
-              mkdir -p lib
-              cp /opt/striim/StriimSDK/StriimOpenProcessor-SDK.jar lib/
-              mvn -B package -DskipTests
-            "
+          CONTAINER=$(docker create --entrypoint /bin/bash striim/evalversion:latest \
+            -c "dpkg -i /tmp/striim-node-*-Linux.deb 2>/dev/null")
+          docker start -a "$CONTAINER"
+          mkdir -p lib
+          docker cp "$CONTAINER:/opt/striim/StriimSDK/StriimOpenProcessor-SDK.jar" lib/
+          docker rm "$CONTAINER"
+      - name: Build
+        run: docker build -t cyphera-striim .
