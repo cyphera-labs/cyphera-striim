@@ -16,8 +16,8 @@ import java.util.Map;
  * Protects (encrypts) specified fields using Cyphera format-preserving encryption.
  *
  * Properties:
- *   policyName - the Cyphera policy to use (e.g. "ssn")
- *   fieldIndex - which field in the event array to protect (0-based)
+ *   configurationName - the Cyphera configuration to use (e.g. "ssn")
+ *   fieldIndex        - which field in the event array to protect (0-based)
  *
  * Requires: StriimOpenProcessor-SDK.jar from your Striim installation.
  * See https://www.striim.com/docs/en/using-striim-open-processors.html
@@ -27,7 +27,7 @@ import java.util.Map;
     type = AdapterType.process,
     properties = {
         @PropertyTemplateProperty(
-            name = "policyName",
+            name = "configurationName",
             type = String.class,
             required = true,
             defaultValue = "ssn"
@@ -43,7 +43,7 @@ import java.util.Map;
 public class CypheraProtectProcessor extends StriimOpenProcessor {
 
     private volatile Cyphera client;
-    private volatile String policyName;
+    private volatile String configurationName;
     private volatile int fieldIndex = -1;
 
     private void ensureInitialized() {
@@ -51,7 +51,7 @@ public class CypheraProtectProcessor extends StriimOpenProcessor {
             synchronized (this) {
                 if (client == null) {
                     Map<String, Object> props = getProperties();
-                    this.policyName = props.getOrDefault("policyName", "ssn").toString();
+                    this.configurationName = props.getOrDefault("configurationName", "ssn").toString();
                     this.fieldIndex = Integer.parseInt(props.getOrDefault("fieldIndex", "2").toString());
                     this.client = CypheraLoader.getInstance();
                 }
@@ -67,7 +67,7 @@ public class CypheraProtectProcessor extends StriimOpenProcessor {
                 Object[] data = (Object[]) eventObj;
                 if (data.length > fieldIndex && data[fieldIndex] != null) {
                     String value = data[fieldIndex].toString();
-                    data[fieldIndex] = client.protect(value, policyName);
+                    data[fieldIndex] = client.protect(value, configurationName);
                 }
                 send(data);
             } catch (Exception e) {

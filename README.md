@@ -32,8 +32,8 @@ Visual drag-and-drop components for the Striim Flow Designer. Requires the Strii
 
 | Processor | Properties | Description |
 |-----------|-----------|-------------|
-| **CypheraProtect** | `policyName`, `fieldIndex` | Protects a field using a named policy |
-| **CypheraAccess** | `fieldIndex` | Accesses a field using the embedded tag |
+| **CypheraProtect** | `configurationName`, `fieldIndex` | Protects a field using a named configuration |
+| **CypheraAccess** | `fieldIndex` | Accesses a field using the embedded header |
 
 #### Using Open Processors in Flow Designer
 
@@ -46,8 +46,8 @@ Visual drag-and-drop components for the Striim Flow Designer. Requires the Strii
 4. Click **+** to add a component → select **Open Processor**
 5. In the **Adapter** dropdown, select **CypheraProtect** or **CypheraAccess**
 6. Configure properties:
-   - **CypheraProtect**: set `policyName` (e.g. `ssn`) and `fieldIndex` (0-based index of the field to protect)
-   - **CypheraAccess**: set `fieldIndex` (the field to access — tag tells Cyphera which policy to use)
+   - **CypheraProtect**: set `configurationName` (e.g. `ssn`) and `fieldIndex` (0-based index of the field to protect)
+   - **CypheraAccess**: set `fieldIndex` (the field to access — the embedded header tells Cyphera which configuration to use)
 7. Connect to an output stream and target
 8. Deploy and start the application
 
@@ -112,15 +112,15 @@ Wait ~30s, open **http://localhost:9080**, login `admin` / `admin`.
 
 See [DEMO.md](DEMO.md) for a complete working pipeline with input/output.
 
-## Policy File
+## Configuration File
 
 Mount `cyphera.json` to `/etc/cyphera/cyphera.json`:
 
 ```json
 {
-  "policies": {
-    "ssn": { "engine": "ff1", "key_ref": "demo-key", "tag": "T01" },
-    "credit_card": { "engine": "ff1", "key_ref": "demo-key", "tag": "T02" }
+  "configurations": {
+    "ssn": { "engine": "ff1", "key_ref": "demo-key", "header": "T01" },
+    "credit_card": { "engine": "ff1", "key_ref": "demo-key", "header": "T02" }
   },
   "keys": {
     "demo-key": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" }
@@ -128,13 +128,13 @@ Mount `cyphera.json` to `/etc/cyphera/cyphera.json`:
 }
 ```
 
-Override with `CYPHERA_POLICY_FILE` env var or `-Dcyphera.policy.file` system property.
+Override with `CYPHERA_CONFIGURATION_FILE` env var or `-Dcyphera.configuration.file` system property.
 
 ## Future / Nice to Have
 
 - **Custom icon in Flow Designer** — register as a full Striim adapter with a branded icon so CypheraProtect/CypheraAccess appear as their own components, not under the generic Open Processor
 - **Multi-field support** — protect/access multiple fields in a single processor (comma-separated field indices or field name mapping)
-- **Policy auto-discovery** — detect field types and suggest policies automatically
+- **Configuration auto-discovery** — detect field types and suggest configurations automatically
 - **Striim Marketplace listing** — publish as an official Striim partner integration
 - **Striim App Template** — pre-built CDC-to-encrypted-target pipeline template users can import
 - **Deeper Striim integration** — explore Striim's custom adapter API (`PropertyTemplate` with `AdapterType.source` / `AdapterType.target`) for tighter UI integration beyond Open Processor

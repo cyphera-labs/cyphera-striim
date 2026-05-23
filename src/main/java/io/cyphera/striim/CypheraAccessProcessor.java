@@ -13,7 +13,7 @@ import java.util.Map;
  * Striim Open Processor: Cyphera Access
  *
  * Drag-and-drop component for the Flow Designer.
- * Accesses (decrypts) specified fields using the embedded tag — no policy name needed.
+ * Accesses (decrypts) specified fields using the embedded header — no configuration name needed.
  *
  * Properties:
  *   fieldIndex - which field in the event array to access (0-based)

@@ -91,9 +91,9 @@ id,name,ssn,email
 5,Eve Brown,T01o1g-zO-gqkU,eve@example.com
 ```
 
-SSNs are protected with format-preserving encryption. Dashes preserved. Tags embedded (`T01`). Names and emails pass through untouched.
+SSNs are protected with format-preserving encryption. Dashes preserved. Headers embedded (`T01`). Names and emails pass through untouched.
 
-Alice's SSN `123-45-6789` → `T01i6J-xF-07pX` matches the cross-language vector across all 7 Cyphera SDKs.
+Alice's SSN `123-45-6789` → `T01i6J-xF-07pX` matches the cross-language vector across all Cyphera SDKs.
 
 ## What's Happening
 
@@ -104,19 +104,19 @@ demo-data.csv → FileReader → DSVParser → RawStream
 ```
 
 The `cyphera_protect('ssn', ...)` function:
-1. Looks up the `ssn` policy in `/etc/cyphera/cyphera.json`
+1. Looks up the `ssn` configuration in `/etc/cyphera/cyphera.json`
 2. Encrypts the value using FF1 format-preserving encryption
-3. Prepends the tag (`T01`) so `cyphera_access` can decrypt without a policy name
+3. Prepends the header (`T01`) so `cyphera_access` can decrypt without a configuration name
 4. Preserves dashes in their original positions
 
-## Policy (config/cyphera.json)
+## Configuration (config/cyphera.json)
 
 ```json
 {
-  "policies": {
-    "ssn": { "engine": "ff1", "key_ref": "demo-key", "tag": "T01" },
-    "credit_card": { "engine": "ff1", "key_ref": "demo-key", "tag": "T02" },
-    "name": { "engine": "ff1", "alphabet": "alpha_lower", "key_ref": "demo-key", "tag": "T03" }
+  "configurations": {
+    "ssn": { "engine": "ff1", "key_ref": "demo-key", "header": "T01" },
+    "credit_card": { "engine": "ff1", "key_ref": "demo-key", "header": "T02" },
+    "name": { "engine": "ff1", "alphabet": "alpha_lower", "key_ref": "demo-key", "header": "T03" }
   },
   "keys": {
     "demo-key": { "material": "2B7E151628AED2A6ABF7158809CF4F3C" }
